@@ -19,34 +19,45 @@ struct PanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // conversation
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 8) {
-                        Button("Load older messages") {
-                            messageStore.loadMore()
+                    LazyVStack(spacing: 6) {
+                        Button(action: { messageStore.loadMore() }) {
+                            Text("Load older messages")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.white.opacity(0.25))
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 14)
+                                .background(Color.white.opacity(0.04))
+                                .clipShape(Capsule())
                         }
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                        .padding(.top, 8)
+                        .buttonStyle(.plain)
+                        .padding(.top, 12)
 
                         ForEach(messageStore.messages) { message in
                             MessageBubbleView(message: message, onRetry: nil)
                                 .id(message.id)
                         }
                     }
-                    .padding(12)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 8)
                 }
                 .onChange(of: messageStore.messages.count) { newCount in
                     if let lastId = messageStore.messages.last?.id {
-                        withAnimation {
+                        withAnimation(.easeOut(duration: 0.2)) {
                             proxy.scrollTo(lastId, anchor: .bottom)
                         }
                     }
                 }
             }
 
-            Divider()
+            // divider
+            Rectangle()
+                .fill(Color.white.opacity(0.06))
+                .frame(height: 1)
 
+            // composer
             ComposerView(
                 text: $composerText,
                 stagedAttachments: $composerState.stagedAttachments,
@@ -63,7 +74,8 @@ struct PanelView: View {
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(Color(red: 0.1, green: 0.1, blue: 0.12))
+        .preferredColorScheme(.dark)
         .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
             for provider in providers {
                 provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { data, _ in

@@ -1,0 +1,10 @@
+build/
+DerivedData/
+*.xcodeproj
+*.xcuserdata
+*.xcworkspace/xcuserdata/
+.DS_Store
+*.dSYM
+*.ipa
+*.dmg
+CLAUDE.md

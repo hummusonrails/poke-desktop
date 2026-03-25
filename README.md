@@ -1,96 +1,128 @@
-# Poke Desktop
+<!-- Banner -->
+<p align="center">
+  <img src=".github/banner.svg" alt="Poke Desktop" width="100%">
+</p>
 
-Native macOS menu bar app for [Poke](https://poke.com), an AI assistant accessible via iMessage. Talk to Poke from anywhere on your Mac through a compact popover or a full slide-out panel -- no need to switch to Messages.app.
+<!-- Badges -->
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/swift-5.9+-F05138.svg?style=flat-square" alt="Swift 5.9+">
+  <img src="https://img.shields.io/badge/macOS-13%2B-000000.svg?style=flat-square&logo=apple" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/SwiftUI-blue.svg?style=flat-square&logo=swift&logoColor=white" alt="SwiftUI">
+  <a href="https://github.com/hummusonrails/poke-desktop/issues"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome"></a>
+</p>
 
-Poke Desktop reads your iMessage conversation directly from `chat.db` and sends messages through AppleScript, so it works with your existing Poke account with zero server-side setup.
+<p align="center">
+  <strong>Native macOS menu bar app for Poke AI via iMessage.</strong>
+  <br>
+  <a href="#quick-start">Quick Start</a> · <a href="#permissions">Permissions</a> · <a href="https://github.com/hummusonrails/poke-desktop/issues">Report a Bug</a>
+</p>
 
-## Features
+<!-- Screenshot -->
+<p align="center">
+  <img src=".github/screenshot.png" alt="Poke Desktop — popover and conversation panel" width="100%">
+</p>
 
-- **Menu bar popover** -- click the icon for a compact voice-first interface showing the last Poke reply and a hold-to-talk button
-- **Slide-out panel** -- press Cmd+Shift+P to open a full conversation view from the right edge of the screen
-- **Push-to-talk** -- hold-to-talk in the popover with on-device speech recognition (Apple Speech framework)
-- **Text-to-speech** -- replies are read aloud using your system Siri voice
-- **Screenshot capture** -- capture a screen region and send it to Poke as an attachment
-- **File attachments** -- drag-and-drop files onto the panel or use the file picker; multiple files can be staged before sending
-- **Conversation history** -- scrollable message history with pagination, loaded directly from `chat.db`
-- **Unread badge** -- red dot on the menu bar icon when new replies arrive while the UI is closed
-- **Auto-updates** -- Sparkle framework checks for new releases on GitHub
-- **Auto-launch** -- optionally starts at login via `SMAppService`
+## What it does
 
-## Requirements
+- **Read and send** iMessages to Poke directly from the menu bar, no app switching
+- **Talk hands-free** with push-to-talk voice input and text-to-speech replies using your system Siri voice
+- **Attach files and screenshots** via drag-and-drop, file picker, or screen capture
+- **Stay notified** with an unread badge on the menu bar icon when replies arrive
+- **Launch anywhere** with a global hotkey (`Cmd+Shift+P`) to open the full conversation panel
+- **Start automatically** at login with a single toggle in preferences
 
-- macOS 13 Ventura or later
-- Xcode 15+ (building from source)
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (building from source)
-- An active Poke account reachable via iMessage
-
-## Installation
+## Quick Start
 
 ### From source
 
 ```bash
 git clone https://github.com/hummusonrails/poke-desktop.git
 cd poke-desktop
+brew install xcodegen       # if not installed
 xcodegen generate
-xcodebuild -scheme PokeDesktop -configuration Release -derivedDataPath build
+xcodebuild -scheme PokeDesktop -configuration Release -derivedDataPath build -quiet
+./scripts/install.sh
 ```
-
-The built app will be at `build/Build/Products/Release/PokeDesktop.app`.
 
 ### From a release
 
-Download the latest tarball from [GitHub Releases](https://github.com/hummusonrails/poke-desktop/releases), then:
-
 ```bash
-tar xzf PokeDesktop-*.tar.gz
+curl -L https://github.com/hummusonrails/poke-desktop/releases/latest/download/PokeDesktop-macOS.tar.gz | tar xz
 ./install.sh
 ```
 
 The install script copies the app to `/Applications`, strips the quarantine attribute (prevents the "app is damaged" error for unsigned apps), and launches it.
 
+## Stack / Architecture
+
+| Layer | Tool | Notes |
+|:------|:-----|:------|
+| UI | SwiftUI + NSPopover + NSPanel | Menu bar popover for voice, slide-out panel for conversation |
+| Messaging | SQLite (read-only) + AppleScript | Reads `chat.db` directly, sends via Messages.app |
+| Voice | SFSpeechRecognizer + `say` command | On-device STT, system Siri voice for TTS |
+| Screenshots | ScreenCaptureKit | Interactive region capture with CLI fallback |
+| Hotkey | [HotKey](https://github.com/soffes/HotKey) | Global `Cmd+Shift+P` via Carbon Events |
+| Updates | [Sparkle](https://github.com/sparkle-project/Sparkle) | Checks GitHub releases for new versions |
+| Build | [XcodeGen](https://github.com/yonaskolb/XcodeGen) | Generates `.xcodeproj` from `project.yml` |
+
+<details>
+<summary><strong>Prerequisites</strong></summary>
+
+- macOS 13 Ventura or later
+- [Xcode](https://apps.apple.com/app/xcode/id497799835) 15+ (building from source)
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+- An active [Poke](https://poke.com) account reachable via iMessage
+
+</details>
+
 ## Permissions
 
-Poke Desktop needs several macOS permissions to function. The app walks you through these during onboarding.
+The app walks you through these during onboarding.
 
 | Permission | Why | When prompted |
-|---|---|---|
-| **Full Disk Access** | Read `~/Library/Messages/chat.db` to load conversation history | First launch (manual grant in System Settings) |
+|:-----------|:----|:--------------|
+| **Full Disk Access** | Read `~/Library/Messages/chat.db` | First launch (manual grant in System Settings) |
 | **Microphone** | Record audio for push-to-talk | First push-to-talk use |
-| **Speech Recognition** | On-device transcription of recorded audio | First push-to-talk use |
-| **Automation (Messages.app)** | Send messages and attachments via AppleScript | First message send |
-| **Screen Recording** | Capture screenshots to attach | First screenshot capture |
+| **Speech Recognition** | On-device transcription | First push-to-talk use |
+| **Automation (Messages.app)** | Send messages via AppleScript | First message send |
+| **Screen Recording** | Capture screenshots | First screenshot capture |
 
-Full Disk Access must be granted manually: System Settings > Privacy & Security > Full Disk Access, then add Poke Desktop.
+Full Disk Access must be granted manually: **System Settings > Privacy & Security > Full Disk Access**, then add Poke Desktop.
 
-## Architecture
-
-Poke Desktop is a pure Swift/SwiftUI app that lives entirely in the menu bar (`LSUIElement = true`).
+## Project structure
 
 ```
-AppDelegate          -- NSStatusItem, global hotkey (HotKey lib), lifecycle
-PopoverView          -- compact voice-first UI shown on menu bar click
-PanelController      -- NSPanel slide-in/out from right edge, non-activating
-PanelView            -- conversation history, composer bar, drag-and-drop
-MessageStore         -- polls chat.db (SQLite, read-only) on a background queue
-MessageSender        -- sends text and files via AppleScript / osascript
-VoiceEngine          -- SFSpeechRecognizer (STT) + say command (TTS)
-ScreenshotCapture    -- ScreenCaptureKit interactive capture
+PokeDesktop/
+├── AppDelegate.swift              # menu bar, hotkey, app lifecycle
+├── PokeDesktopApp.swift           # swiftui entry point
+├── Info.plist                     # usage descriptions, LSUIElement
+├── Models/
+│   ├── Message.swift              # message data model with send status
+│   └── Attachment.swift           # file attachment model
+├── Services/
+│   ├── MessageStore.swift         # chat.db polling, message parsing
+│   ├── MessageSender.swift        # applescript bridge for imessage
+│   ├── VoiceEngine.swift          # speech-to-text + text-to-speech
+│   ├── ScreenshotCapture.swift    # screencapturekit integration
+│   └── PreferencesManager.swift   # userdefaults persistence
+├── Views/
+│   ├── PopoverView.swift          # compact voice-first popover
+│   ├── PanelController.swift      # slide-out panel management
+│   ├── PanelView.swift            # conversation + composer
+│   ├── ComposerView.swift         # text input, file staging
+│   ├── MessageBubbleView.swift    # chat bubble with attachments
+│   ├── AttachmentChipView.swift   # removable file chip
+│   ├── OnboardingView.swift       # setup wizard
+│   └── PreferencesView.swift      # settings window
+└── Resources/
+    └── Assets.xcassets            # app icon, menu bar icon
 ```
 
-**Sending:** User types or speaks a message. `MessageSender` executes an AppleScript that tells Messages.app to send to the configured Poke handle.
+## Contributing
 
-**Receiving:** `MessageStore` polls `chat.db` every 1.5-3 seconds (adaptive -- faster right after sending), tracks a ROWID cursor, and publishes new messages to the UI.
-
-**Poke handle selection:** During onboarding, the app scans recent iMessage conversations and asks the user to pick their Poke chat. The selected handle is stored in UserDefaults.
-
-## Configuration
-
-Right-click the menu bar icon for preferences:
-
-- **Read aloud** -- toggle TTS for incoming replies
-- **Launch at login** -- toggle auto-start
-- **Global hotkey** -- default Cmd+Shift+P
+Contributions welcome. Open an [issue](https://github.com/hummusonrails/poke-desktop/issues) or submit a PR.
 
 ## License
 
-MIT
+[MIT](LICENSE)

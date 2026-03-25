@@ -34,5 +34,6 @@ struct PreferencesView: View {
         }
         .formStyle(.grouped)
         .frame(width: 350, height: 250)
+        .preferredColorScheme(.dark)
     }
 }
