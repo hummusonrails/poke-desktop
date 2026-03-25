@@ -109,6 +109,7 @@ struct OnboardingView: View {
             }
         }
         .frame(width: 480, height: 460)
+        .preferredColorScheme(.dark)
         .onAppear { appeared = true }
     }
 

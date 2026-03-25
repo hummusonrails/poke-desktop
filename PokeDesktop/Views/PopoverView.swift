@@ -43,31 +43,39 @@ struct PopoverView: View {
 
     @State private var isListening = false
 
+    private let accentTeal = Color(red: 0.18, green: 0.72, blue: 0.53)
+
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
+            // last reply
             if let lastReply = messageStore.messages.last(where: { !$0.isFromMe }) {
                 Text(lastReply.text)
-                    .font(.system(size: 13))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.white.opacity(0.85))
                     .lineLimit(4)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(10)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .cornerRadius(8)
+                    .padding(12)
+                    .background(Color.white.opacity(0.08))
+                    .cornerRadius(10)
             } else {
                 Text("No messages yet")
                     .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.35))
             }
 
+            // mic button
             ZStack {
                 Circle()
-                    .fill(isListening ? Color.green.opacity(0.3) : Color(nsColor: .controlBackgroundColor))
-                    .frame(width: 56, height: 56)
+                    .fill(isListening ? accentTeal.opacity(0.2) : Color.white.opacity(0.06))
+                    .frame(width: 58, height: 58)
+
+                Circle()
+                    .stroke(isListening ? accentTeal.opacity(0.5) : Color.white.opacity(0.1), lineWidth: 1.5)
+                    .frame(width: 58, height: 58)
 
                 Image(systemName: "mic.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(isListening ? .green : .primary)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(isListening ? accentTeal : .white.opacity(0.7))
                     .allowsHitTesting(false)
 
                 PushToTalkButton(
@@ -81,48 +89,57 @@ struct PopoverView: View {
                         onPushToTalk(false)
                     }
                 )
-                .frame(width: 56, height: 56)
+                .frame(width: 58, height: 58)
             }
-            .scaleEffect(isListening ? 1.1 : 1.0)
-            .animation(.easeInOut(duration: 0.3), value: isListening)
+            .scaleEffect(isListening ? 1.08 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isListening)
 
             Text("Hold to Talk")
-                .font(.system(size: 11))
-                .foregroundColor(.secondary)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.white.opacity(0.3))
+                .textCase(.uppercase)
+                .tracking(0.5)
 
-            Divider()
+            // footer
+            Rectangle()
+                .fill(Color.white.opacity(0.06))
+                .frame(height: 1)
 
             HStack {
                 Button(action: onExpandToPanel) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 5) {
                         Text("⌘⇧P")
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.25))
                         Text("Open panel")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.white.opacity(0.25))
                     }
                 }
                 .buttonStyle(.plain)
 
                 Spacer()
 
-                Button(action: onPreferences) {
-                    Image(systemName: "gear")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
+                HStack(spacing: 10) {
+                    Button(action: onPreferences) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white.opacity(0.25))
+                    }
+                    .buttonStyle(.plain)
 
-                Button(action: { NSApp.terminate(nil) }) {
-                    Image(systemName: "power")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                    Button(action: { NSApp.terminate(nil) }) {
+                        Image(systemName: "power")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.white.opacity(0.25))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(16)
-        .frame(width: 280, height: 210)
+        .padding(18)
+        .frame(width: 280, height: 220)
+        .background(Color(red: 0.11, green: 0.11, blue: 0.13))
+        .preferredColorScheme(.dark)
     }
 }
